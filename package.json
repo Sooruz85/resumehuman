@@ -1,0 +1,16 @@
+{
+  "name": "resumehuman",
+  "version": "1.0.0",
+  "description": "Générateur de lettre de motivation en PDF",
+  "main": "generate-pdf.js",
+  "scripts": {
+    "generate": "node generate-pdf.js",
+    "dev": "node generate-pdf.js"
+  },
+  "dependencies": {
+    "puppeteer": "^21.5.2"
+  },
+  "keywords": ["pdf", "puppeteer", "lettre", "motivation"],
+  "author": "Etienne Gaumery",
+  "license": "MIT"
+}
