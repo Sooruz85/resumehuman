@@ -5,13 +5,22 @@ const fs = require('fs');
 async function generatePDF() {
     console.log('🚀 Démarrage de la génération du PDF...');
 
-    // Lancer le navigateur
-    const browser = await puppeteer.launch({
-        headless: 'new',
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
-
+    let browser;
     try {
+        // Lancer le navigateur avec des options plus compatibles
+        browser = await puppeteer.launch({
+            headless: true,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-accelerated-2d-canvas',
+                '--no-first-run',
+                '--no-zygote',
+                '--disable-gpu'
+            ]
+        });
+
         const page = await browser.newPage();
 
         // Chemin vers le fichier HTML
@@ -20,11 +29,11 @@ async function generatePDF() {
 
         // Charger le contenu HTML
         await page.setContent(htmlContent, {
-            waitUntil: 'networkidle0'
+            waitUntil: 'domcontentloaded'
         });
 
         // Attendre que les polices et styles soient chargés
-        await page.waitForTimeout(2000);
+        await page.waitForTimeout(3000);
 
         // Configuration du PDF
         const pdfOptions = {
@@ -49,10 +58,33 @@ async function generatePDF() {
         console.log('📁 Fichier créé : lettre-motivation-etienne-gaumery.pdf');
 
     } catch (error) {
-        console.error('❌ Erreur lors de la génération du PDF:', error);
+        console.error('❌ Erreur lors de la génération du PDF:', error.message);
+        
+        // Essayer une approche alternative avec des options plus simples
+        if (browser) {
+            try {
+                console.log('🔄 Tentative avec des options alternatives...');
+                const page = await browser.newPage();
+                await page.goto(`file://${path.join(__dirname, 'lettre-motivation.html')}`, {
+                    waitUntil: 'networkidle0'
+                });
+                
+                await page.pdf({
+                    path: 'lettre-motivation-etienne-gaumery.pdf',
+                    format: 'A4',
+                    printBackground: true
+                });
+                
+                console.log('✅ PDF généré avec succès (méthode alternative) !');
+            } catch (altError) {
+                console.error('❌ Échec de la méthode alternative:', altError.message);
+            }
+        }
     } finally {
-        await browser.close();
-        console.log('🔒 Navigateur fermé');
+        if (browser) {
+            await browser.close();
+            console.log('🔒 Navigateur fermé');
+        }
     }
 }
 
